@@ -72,6 +72,11 @@ public class TranslationContext {
     @Nullable
     private final VariableDescriptor continuationParameterDescriptor;
 
+    private final Set<String> modulesImportedForInline = new HashSet<>();
+
+    @Nullable
+    private InlineFunctionContext inlineFunctionContext;
+
     @NotNull
     public static TranslationContext rootContext(@NotNull StaticContext staticContext) {
         DynamicContext rootDynamicContext = DynamicContext.rootContext(
@@ -104,6 +109,14 @@ public class TranslationContext {
         }
 
         continuationParameterDescriptor = calculateContinuationParameter();
+        inlineFunctionContext = parent != null ? parent.inlineFunctionContext : null;
+
+        DeclarationDescriptor parentDescriptor = parent != null ? parent.declarationDescriptor : null;
+        if (parentDescriptor != declarationDescriptor &&
+            declarationDescriptor instanceof CallableDescriptor &&
+            CallExpressionTranslator.shouldBeInlined((CallableDescriptor) declarationDescriptor, this)) {
+            inlineFunctionContext = new InlineFunctionContext((CallableDescriptor) declarationDescriptor);
+        }
     }
 
     private VariableDescriptor calculateContinuationParameter() {
@@ -137,6 +150,11 @@ public class TranslationContext {
     @NotNull
     public DynamicContext dynamicContext() {
         return dynamicContext;
+    }
+
+    @Nullable
+    public InlineFunctionContext getInlineFunctionContext() {
+        return inlineFunctionContext;
     }
 
     @NotNull
@@ -325,8 +343,27 @@ public class TranslationContext {
 
     @NotNull
     public JsExpression getInnerReference(@NotNull DeclarationDescriptor descriptor) {
+        JsName name;
+        if (inlineFunctionContext == null || DescriptorUtils.isAncestor(inlineFunctionContext.getDescriptor(), descriptor, false)) {
+            name = getInnerNameForDescriptor(descriptor);
+        }
+        else {
+            String tag = staticContext.getTag(descriptor);
+            name = inlineFunctionContext.getImports().computeIfAbsent(tag, t -> {
+                JsName result = JsScope.declareTemporaryName(StaticContext.getSuggestedName(descriptor));
+                JsExpression imported = createInlineLocalImportExpression(descriptor);
+                inlineFunctionContext.getImportBlock().getStatements().add(JsAstUtils.newVar(result, imported));
+                return result;
+            });
+        }
+
+        return pureFqn(name, null);
+    }
+
+    @NotNull
+    private JsExpression createInlineLocalImportExpression(@NotNull DeclarationDescriptor descriptor) {
+        JsExpression result = getQualifiedReference(descriptor);
         JsName name = getInnerNameForDescriptor(descriptor);
-        JsExpression result = pureFqn(name, null);
 
         SuggestedName suggested = staticContext.suggestName(descriptor);
         if (suggested != null && getConfig().getModuleKind() != ModuleKind.PLAIN && isPublicInlineFunction()) {
@@ -697,7 +734,12 @@ public class TranslationContext {
     }
 
     public void addDeclarationStatement(@NotNull JsStatement statement) {
-        staticContext.getDeclarationStatements().add(statement);
+        if (inlineFunctionContext != null) {
+            inlineFunctionContext.getDeclarationsBlock().getStatements().add(statement);
+        }
+        else {
+            staticContext.getDeclarationStatements().add(statement);
+        }
     }
 
     public void addTopLevelStatement(@NotNull JsStatement statement) {
