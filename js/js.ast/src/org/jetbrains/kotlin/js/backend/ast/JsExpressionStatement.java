@@ -6,7 +6,7 @@ package org.jetbrains.kotlin.js.backend.ast;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class JsExpressionStatement extends AbstractNode implements JsStatement {
+public final class JsExpressionStatement extends JsStatement {
     @NotNull
     private JsExpression expression;
 
@@ -32,16 +32,6 @@ public final class JsExpressionStatement extends AbstractNode implements JsState
     @Override
     public Object getSource() {
         return null;
-    }
-
-    @Override
-    public void setSource(Object info) {
-        throw new IllegalStateException("You must not set source info for JsExpressionStatement, set for expression");
-    }
-
-    @Override
-    public JsNode source(Object info) {
-        throw new IllegalStateException("You must not set source info for JsExpressionStatement, set for expression");
     }
 
     @Override
