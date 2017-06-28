@@ -351,6 +351,9 @@ public class TranslationContext {
             String tag = staticContext.getTag(descriptor);
             name = inlineFunctionContext.getImports().computeIfAbsent(tag, t -> {
                 JsName result = JsScope.declareTemporaryName(StaticContext.getSuggestedName(descriptor));
+                if (isFromCurrentModule(descriptor) && !AnnotationsUtils.isNativeObject(descriptor)) {
+                    MetadataProperties.setLocalAlias(result, getInnerNameForDescriptor(descriptor));
+                }
                 JsExpression imported = createInlineLocalImportExpression(descriptor);
                 inlineFunctionContext.getImportBlock().getStatements().add(JsAstUtils.newVar(result, imported));
                 return result;
