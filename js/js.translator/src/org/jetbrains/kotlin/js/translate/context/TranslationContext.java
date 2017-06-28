@@ -344,7 +344,8 @@ public class TranslationContext {
     @NotNull
     public JsExpression getInnerReference(@NotNull DeclarationDescriptor descriptor) {
         JsName name;
-        if (inlineFunctionContext == null || DescriptorUtils.isAncestor(inlineFunctionContext.getDescriptor(), descriptor, false)) {
+        if (inlineFunctionContext == null || !isPublicInlineFunction() ||
+            DescriptorUtils.isAncestor(inlineFunctionContext.getDescriptor(), descriptor, false)) {
             name = getInnerNameForDescriptor(descriptor);
         }
         else {
@@ -738,6 +739,9 @@ public class TranslationContext {
 
     public void addDeclarationStatement(@NotNull JsStatement statement) {
         if (inlineFunctionContext != null) {
+            if (!isPublicInlineFunction()) {
+                staticContext.getDeclarationStatements().add(statement);
+            }
             inlineFunctionContext.getDeclarationsBlock().getStatements().add(statement);
         }
         else {
