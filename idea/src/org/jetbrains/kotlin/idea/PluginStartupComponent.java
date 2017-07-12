@@ -79,7 +79,7 @@ public class PluginStartupComponent implements ApplicationComponent {
             @Override
             public void documentChanged(DocumentEvent e) {
                 VirtualFile virtualFile = FileDocumentManager.getInstance().getFile(e.getDocument());
-                if (virtualFile != null && virtualFile.getFileType() == KotlinFileType.INSTANCE) {
+                if (virtualFile != null && virtualFile.getFileType() == KotlinFileType.INSTANCE && virtualFile.isInLocalFileSystem()) {
                     KotlinPluginUpdater.Companion.getInstance().kotlinFileEdited();
                 }
             }

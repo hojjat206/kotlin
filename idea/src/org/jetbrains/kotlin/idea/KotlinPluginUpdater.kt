@@ -88,7 +88,7 @@ class KotlinPluginUpdater(val propertiesComponent: PropertiesComponent) : Dispos
     @Volatile private var lastUpdateStatus: PluginUpdateStatus? = null
 
     fun kotlinFileEdited() {
-        if (ApplicationManager.getApplication().isUnitTestMode) return
+        if (ApplicationManager.getApplication().isUnitTestMode || ApplicationManager.getApplication().isHeadlessEnvironment) return
         if (!UpdateSettings.getInstance().isCheckNeeded) return
 
         val lastUpdateTime = java.lang.Long.parseLong(propertiesComponent.getValue(PROPERTY_NAME, "0"))
