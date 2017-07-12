@@ -237,16 +237,18 @@ private fun findCallsOnPosition(sourcePosition: SourcePosition, filter: (KtCallE
     val lineNumber = sourcePosition.line
     var elementAt = sourcePosition.elementAt
 
-    var startOffset = file.getLineStartOffset(lineNumber) ?: elementAt.startOffset
+    val startOffset = file.getLineStartOffset(lineNumber) ?: elementAt.startOffset
     val endOffset = file.getLineEndOffset(lineNumber) ?: elementAt.endOffset
 
     var topMostElement: PsiElement? = null
-    while (topMostElement !is KtElement && startOffset < endOffset) {
-        elementAt = file.findElementAt(startOffset)
+    for (offset in startOffset until endOffset) {
+        elementAt = file.findElementAt(offset)
         if (elementAt != null) {
-            topMostElement = CodeInsightUtils.getTopmostElementAtOffset(elementAt, startOffset)
+            topMostElement = CodeInsightUtils.getTopmostElementAtOffset(elementAt, offset)
+            if (topMostElement is KtElement) {
+                break
+            }
         }
-        startOffset++
     }
 
     if (topMostElement !is KtElement) return emptyList()

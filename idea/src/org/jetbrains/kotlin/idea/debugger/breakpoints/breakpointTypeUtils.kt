@@ -124,17 +124,16 @@ fun getLambdasAtLineIfAny(sourcePosition: SourcePosition): List<KtFunction> {
 }
 
 fun getLambdasAtLineIfAny(file: KtFile, line: Int): List<KtFunction> {
-    var lineStartOffset = file.getLineStartOffset(line) ?: return emptyList()
-    var lineEndOffset = file.getLineEndOffset(line) ?: return emptyList()
+    val lineStartOffset = file.getLineStartOffset(line) ?: return emptyList()
+    val lineEndOffset = file.getLineEndOffset(line) ?: return emptyList()
 
     var topMostElement: PsiElement? = null
     var elementAt: PsiElement?
-    while (topMostElement !is KtElement && lineStartOffset < lineEndOffset) {
-        elementAt = file.findElementAt(lineStartOffset)
+    for (offset in lineStartOffset until lineEndOffset) {
+        elementAt = file.findElementAt(offset)
         if (elementAt != null) {
-            topMostElement = CodeInsightUtils.getTopmostElementAtOffset(elementAt, lineStartOffset)
+            topMostElement = CodeInsightUtils.getTopmostElementAtOffset(elementAt, offset)
         }
-        lineStartOffset++
     }
 
     if (topMostElement !is KtElement) return emptyList()
