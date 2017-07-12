@@ -514,7 +514,8 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
         assert initializer != null : "shouldInitializeProperty must return false if initializer is null";
 
         StackValue.Property propValue = codegen.intermediateValueForProperty(
-                propertyDescriptor, true, false, null, true, StackValue.LOCAL_0, null);
+                propertyDescriptor, true, false, null, true, StackValue.LOCAL_0, null, false
+        );
 
         ResolvedCall<FunctionDescriptor> provideDelegateResolvedCall = bindingContext.get(PROVIDE_DELEGATE_RESOLVED_CALL, propertyDescriptor);
         if (provideDelegateResolvedCall == null) {
@@ -751,7 +752,7 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
                                          original.getVisibility() == JavaVisibilities.PROTECTED_STATIC_VISIBILITY;
                     StackValue property = codegen.intermediateValueForProperty(
                             original, forceField, syntheticBackingField, accessor.getSuperCallTarget(),
-                            forceFieldForCompanionProperty, StackValue.none(), null
+                            forceFieldForCompanionProperty, StackValue.none(), null, false
                     );
 
                     InstructionAdapter iv = codegen.v;
