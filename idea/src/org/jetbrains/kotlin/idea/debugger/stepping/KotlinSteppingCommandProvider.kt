@@ -49,6 +49,7 @@ import org.jetbrains.kotlin.idea.refactoring.getLineEndOffset
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.idea.refactoring.getLineStartOffset
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -248,6 +249,13 @@ private fun findCallsOnPosition(sourcePosition: SourcePosition, filter: (KtCallE
             if (topMostElement is KtElement) {
                 break
             }
+        }
+    }
+
+    if (topMostElement != null && topMostElement.node.elementType == KtTokens.RBRACE) {
+        val call = topMostElement.getParentOfType<KtCallExpression>(true)
+        if (call != null && filter(call)) {
+            return listOf(call)
         }
     }
 
