@@ -240,12 +240,12 @@ class AndroidExpressionCodegenExtension : ExpressionCodegenExtension {
                 iv.invokevirtual(containerType.internalClassName, "findViewById", "(I)Landroid/view/View;", false)
             }
             AndroidContainerType.FRAGMENT, AndroidContainerType.SUPPORT_FRAGMENT, AndroidContainerType.LAYOUT_CONTAINER -> {
-                val (methodName, targetClassName) = when (containerType) {
-                    AndroidContainerType.LAYOUT_CONTAINER -> Pair("getEntityView", containerType.internalClassName)
-                    else -> Pair("getView", containerType.internalClassName)
+                if (containerType == AndroidContainerType.LAYOUT_CONTAINER) {
+                    iv.invokeinterface(containerType.internalClassName, "getContainerView", "()Landroid/view/View;")
+                } else {
+                    iv.invokevirtual(containerType.internalClassName, "getView", "()Landroid/view/View;", false)
                 }
 
-                iv.invokevirtual(targetClassName, methodName, "()Landroid/view/View;", false)
                 iv.dup()
                 val lgetViewNotNull = Label()
                 iv.ifnonnull(lgetViewNotNull)
